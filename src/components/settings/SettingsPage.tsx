@@ -555,6 +555,7 @@ function TemplateEditor() {
       </div>
       <div className="card-title" style={{ marginTop: 16 }}>プレビュー</div>
       <div className="notification-text">
+        {'<@SlackユーザーID>\n'}
         {template.header}
         {'\n'}・講座サンプル（https://example.com）：2回{'\n'}
         {template.footer}
