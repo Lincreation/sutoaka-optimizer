@@ -1,0 +1,7 @@
+node_modules
+dist
+.claude
+recovered_data
+*.log
+*.tsbuildinfo
+localStorage_restore.json
