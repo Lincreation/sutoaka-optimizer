@@ -27,6 +27,8 @@ export interface AppActions {
   setTemplate: (v: NotificationTemplate | ((p: NotificationTemplate) => NotificationTemplate)) => void;
   currentPlan: MonthlyPlan | null;
   setCurrentPlan: (v: MonthlyPlan | null) => void;
+  planHistory: MonthlyPlan[];
+  setPlanHistory: (v: MonthlyPlan[] | ((p: MonthlyPlan[]) => MonthlyPlan[])) => void;
   runAllocation: () => MonthlyPlan;
 }
 
@@ -42,6 +44,7 @@ export function useAppStateValue(): AppActions {
   const [config, setConfig] = useLocalStorage<AllocationConfig>('config', DEFAULT_CONFIG);
   const [template, setTemplate] = useLocalStorage<NotificationTemplate>('template', DEFAULT_TEMPLATE);
   const [currentPlan, setCurrentPlan] = useLocalStorage<MonthlyPlan | null>('currentPlan', null);
+  const [planHistory, setPlanHistory] = useLocalStorage<MonthlyPlan[]>('planHistory', []);
 
   return useMemo(
     () => ({
@@ -59,13 +62,17 @@ export function useAppStateValue(): AppActions {
       setTemplate,
       currentPlan,
       setCurrentPlan,
+      planHistory,
+      setPlanHistory,
       runAllocation: () => {
         const plan = allocate(courses, courseTargets, groups, members, config);
         setCurrentPlan(plan);
+        // Save to history (max 10, newest first)
+        setPlanHistory((prev) => [plan, ...prev].slice(0, 10));
         return plan;
       },
     }),
-    [courses, setCourses, courseTargets, setCourseTargets, groups, setGroups, members, setMembers, config, setConfig, template, setTemplate, currentPlan, setCurrentPlan]
+    [courses, setCourses, courseTargets, setCourseTargets, groups, setGroups, members, setMembers, config, setConfig, template, setTemplate, currentPlan, setCurrentPlan, planHistory, setPlanHistory]
   );
 }
 

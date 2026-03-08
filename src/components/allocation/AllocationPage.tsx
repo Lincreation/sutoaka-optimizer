@@ -15,6 +15,9 @@ export function AllocationPage({ onNavigate }: Props) {
     members,
     config,
     currentPlan,
+    setCurrentPlan,
+    planHistory,
+    setPlanHistory,
     runAllocation,
   } = useAppState();
 
@@ -233,6 +236,67 @@ export function AllocationPage({ onNavigate }: Props) {
             </div>
           )}
         </>
+      )}
+
+      {/* Plan History */}
+      {planHistory.length > 0 && (
+        <div className="card" style={{ marginTop: 24 }}>
+          <div className="card-title">実行履歴（最大10件）</div>
+          <table>
+            <thead>
+              <tr>
+                <th>生成日時</th>
+                <th>期間</th>
+                <th>割当回数</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {planHistory.map((plan) => {
+                const totalAssigned = plan.assignments.reduce((s, a) => s + a.count, 0);
+                const isCurrent = currentPlan?.id === plan.id;
+                return (
+                  <tr key={plan.id} style={{ background: isCurrent ? 'var(--color-primary-bg)' : undefined }}>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {new Date(plan.generatedAt).toLocaleString('ja-JP')}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {plan.config.periodStart} 〜 {plan.config.periodEnd}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>{totalAssigned}回</td>
+                    <td>
+                      {isCurrent ? (
+                        <span className="badge badge-success">表示中</span>
+                      ) : (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => {
+                            setCurrentPlan(plan);
+                            setJustCompleted(false);
+                          }}
+                        >
+                          読み込む
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 8 }}>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => {
+                if (confirm('履歴を全て削除しますか？')) {
+                  setPlanHistory([]);
+                }
+              }}
+            >
+              履歴をクリア
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

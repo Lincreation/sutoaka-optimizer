@@ -8,6 +8,7 @@ export function CourseView() {
   const { currentPlan, courses, courseTargets, members, groups } = useAppState();
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
+  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
 
   const courseData = useMemo(() => {
     if (!currentPlan) return [];
@@ -73,14 +74,28 @@ export function CourseView() {
     }).filter((c) => c.targetCount > 0 || c.assignedCount > 0);
   }, [currentPlan, courses, courseTargets, members, groups]);
 
-  // Build calendar grid info from plan period
-  const calendarInfo = useMemo(() => {
+  // Compute period month range
+  const monthRange = useMemo(() => {
     if (!currentPlan) return null;
     const start = new Date(currentPlan.config.periodStart + 'T00:00:00');
     const end = new Date(currentPlan.config.periodEnd + 'T00:00:00');
+    const startYear = start.getFullYear();
+    const startMonth = start.getMonth();
+    const endYear = end.getFullYear();
+    const endMonth = end.getMonth();
+    const totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth);
+    return { startYear, startMonth, totalMonths };
+  }, [currentPlan]);
 
-    const year = start.getFullYear();
-    const month = start.getMonth();
+  // Build calendar grid info from plan period + offset
+  const calendarInfo = useMemo(() => {
+    if (!currentPlan || !monthRange) return null;
+    const start = new Date(currentPlan.config.periodStart + 'T00:00:00');
+    const end = new Date(currentPlan.config.periodEnd + 'T00:00:00');
+
+    const displayDate = new Date(monthRange.startYear, monthRange.startMonth + calendarMonthOffset, 1);
+    const year = displayDate.getFullYear();
+    const month = displayDate.getMonth();
 
     // Build full month grid (always show complete month)
     const firstOfMonth = new Date(year, month, 1);
@@ -112,8 +127,10 @@ export function CourseView() {
       month: month + 1,
       cells,
       dayNames: ['日', '月', '火', '水', '木', '金', '土'],
+      canPrev: true,
+      canNext: true,
     };
-  }, [currentPlan]);
+  }, [currentPlan, monthRange, calendarMonthOffset]);
 
   if (!currentPlan) {
     return (
@@ -168,6 +185,8 @@ export function CourseView() {
             <CourseCalendar
               calendarInfo={calendarInfo}
               dateMap={course.dateMap}
+              onPrev={() => setCalendarMonthOffset((o) => o - 1)}
+              onNext={() => setCalendarMonthOffset((o) => o + 1)}
             />
           ) : (
             <table>
@@ -234,19 +253,43 @@ export function CourseView() {
 function CourseCalendar({
   calendarInfo,
   dateMap,
+  onPrev,
+  onNext,
 }: {
   calendarInfo: {
     year: number;
     month: number;
     cells: { day: number; iso: string; inPeriod: boolean }[];
     dayNames: string[];
+    canPrev: boolean;
+    canNext: boolean;
   };
   dateMap: Map<string, { memberId: string; memberName: string; count: number }[]>;
+  onPrev: () => void;
+  onNext: () => void;
 }) {
   return (
     <div>
-      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--color-text-secondary)' }}>
-        {calendarInfo.year}年{calendarInfo.month}月
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <button
+          className="btn btn-secondary"
+          style={{ padding: '2px 10px', fontSize: 14, minWidth: 0 }}
+          onClick={onPrev}
+          disabled={!calendarInfo.canPrev}
+        >
+          ◀
+        </button>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+          {calendarInfo.year}年{calendarInfo.month}月
+        </span>
+        <button
+          className="btn btn-secondary"
+          style={{ padding: '2px 10px', fontSize: 14, minWidth: 0 }}
+          onClick={onNext}
+          disabled={!calendarInfo.canNext}
+        >
+          ▶
+        </button>
       </div>
       <div className="course-cal-grid">
         {/* Day name headers */}

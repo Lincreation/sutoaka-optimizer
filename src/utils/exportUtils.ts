@@ -77,6 +77,32 @@ export function downloadTsv(tsv: string, filename: string): void {
   downloadBlob(blob, filename);
 }
 
+/**
+ * CSV for file download. Same structure as TSV but comma-separated.
+ * RFC 4180 compliant with double-quote wrapping.
+ */
+export function csvForDownload(
+  notifications: SlackNotificationData[]
+): string {
+  const header = COLUMNS.join(',');
+  const rows = notifications.map((n) => {
+    const vals = rowValues(n);
+    return vals.map((v) => {
+      if (v.includes('\n') || v.includes(',') || v.includes('"')) {
+        return `"${v.replace(/"/g, '""')}"`;
+      }
+      return v;
+    }).join(',');
+  }).join('\n');
+  return header + '\n' + rows;
+}
+
+export function downloadCsv(csv: string, filename: string): void {
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+  downloadBlob(blob, filename);
+}
+
 /** Copy text to clipboard. Uses textarea fallback first for max compatibility. */
 export function copyToClipboard(text: string): Promise<void> {
   return new Promise((resolve, reject) => {

@@ -51,53 +51,95 @@ export const DEFAULT_COURSE_TARGETS: CourseTarget[] = [
 ];
 
 // --- Groups ---
-const GRP_HAYASHI_ARAI = 'grp-hayashi-arai';
-const GRP_RIN = 'grp-rin';
-const GRP_SHINKI = 'grp-shinki';
-const GRP_KOSAN = 'grp-kosan';
+const GRP_1000EN = 'grp-1000en';
+const GRP_KOSAN_ARAI = 'grp-kosan-arai';
+const GRP_SHINKI_TAKEUCHI = 'grp-shinki-takeuchi';
+const GRP_NN = 'grp-nn';
 const GRP_TAKEUCHI = 'grp-takeuchi';
 
 export const DEFAULT_GROUPS: Group[] = [
-  { id: GRP_HAYASHI_ARAI, name: 'グループ林新井', eligibleCourseIds: ['164b946c-3c48-4dc4-b222-304e45498e25', '0996813b-2ff0-4522-9210-ee2f1b09b6ab'], slackChannelId: '' },
-  { id: GRP_RIN, name: 'グループりん', eligibleCourseIds: ['c1', 'c2', 'c068624d-7d8b-416a-9f23-f213dbc0e693', '1b338708-4776-4e21-b1b1-2e24c8784bf7'], slackChannelId: '' },
-  { id: GRP_SHINKI, name: 'グループ新規', eligibleCourseIds: ['c3', 'cb20afea-ea7a-43ef-84ce-ffafa28f8bc8', 'f6347f8d-a3b2-4211-83b8-73b95cceeb9c'], slackChannelId: '' },
-  { id: GRP_KOSAN, name: 'グループ古参', eligibleCourseIds: ['9d7f6a00-bf82-4eb8-af00-abba70fde6f2', '98179ed1-9c93-4fa1-95b9-e760fcf39b16'], slackChannelId: '' },
-  { id: GRP_TAKEUCHI, name: 'グループ竹内', eligibleCourseIds: ['e252c024-2b17-4321-ab5c-36d3c29b5f3a', '9ddbcf84-84b5-4a88-938c-679cb79a3ff8'], slackChannelId: '' },
+  {
+    id: GRP_1000EN,
+    name: '1000円講座',
+    eligibleCourseIds: ['c1', 'c2', 'c068624d-7d8b-416a-9f23-f213dbc0e693', '1b338708-4776-4e21-b1b1-2e24c8784bf7'],
+    slackChannelId: 'C0123456789',
+  },
+  {
+    id: GRP_KOSAN_ARAI,
+    name: '古参+新井',
+    eligibleCourseIds: [
+      '9d7f6a00-bf82-4eb8-af00-abba70fde6f2', // 柴田_インスタ
+      '98179ed1-9c93-4fa1-95b9-e760fcf39b16', // たいよう_Ai動画
+      '164b946c-3c48-4dc4-b222-304e45498e25', // 林_AIライティング
+      '0996813b-2ff0-4522-9210-ee2f1b09b6ab', // 新井_AI副業
+    ],
+    slackChannelId: 'C0123456789',
+  },
+  {
+    id: GRP_SHINKI_TAKEUCHI,
+    name: '新規+竹内',
+    eligibleCourseIds: [
+      'c3',                                     // 渡邊_AI動画
+      'cb20afea-ea7a-43ef-84ce-ffafa28f8bc8',   // 遠藤_在宅副業
+      'f6347f8d-a3b2-4211-83b8-73b95cceeb9c',   // 瀧上_業務改善
+      'e252c024-2b17-4321-ab5c-36d3c29b5f3a',   // 竹内_占い
+      '9ddbcf84-84b5-4a88-938c-679cb79a3ff8',   // 竹内_コンサル
+    ],
+    slackChannelId: 'C0123456789',
+  },
+  {
+    id: GRP_NN,
+    name: 'nn',
+    eligibleCourseIds: [],
+    slackChannelId: 'C0123456789',
+  },
+  {
+    id: GRP_TAKEUCHI,
+    name: '竹内',
+    eligibleCourseIds: [
+      'e252c024-2b17-4321-ab5c-36d3c29b5f3a', // 竹内_占い
+      '9ddbcf84-84b5-4a88-938c-679cb79a3ff8', // 竹内_コンサル
+    ],
+    slackChannelId: 'C0123456789',
+  },
 ];
 
 // --- Members (with group assignments and active status) ---
 const MEMBER_GROUP_MAP: Record<string, string> = {
-  'member_001': GRP_HAYASHI_ARAI,
-  'member_002': GRP_HAYASHI_ARAI,
-  'member_003': GRP_RIN,
-  'member_004': GRP_RIN,
-  'member_005': GRP_RIN,
-  'member_006': GRP_RIN,
-  'member_007': GRP_RIN,
-  'member_008': GRP_RIN,
-  'member_009': GRP_RIN,
-  'member_010': GRP_RIN,
-  'member_011': GRP_RIN,
-  'member_012': GRP_RIN,
-  'member_013': GRP_RIN,
-  'member_014': GRP_RIN,
-  'member_015': GRP_RIN,
-  'member_016': GRP_KOSAN,
-  'member_017': GRP_KOSAN,
-  'member_018': GRP_KOSAN,
-  'member_019': GRP_KOSAN,
-  'member_020': GRP_KOSAN,
-  'member_021': GRP_KOSAN,
-  'member_022': GRP_TAKEUCHI,
-  'member_023': GRP_TAKEUCHI,
-  'member_024': GRP_TAKEUCHI,
-  'member_025': GRP_TAKEUCHI,
-  'member_026': GRP_TAKEUCHI,
-  'member_027': GRP_TAKEUCHI,
-  'member_028': GRP_SHINKI,
-  'member_029': GRP_SHINKI,
-  'member_031': GRP_SHINKI,
-  'member_032': GRP_SHINKI,
+  // 古参+新井 (old: グループ林新井 + グループ古参)
+  'member_001': GRP_KOSAN_ARAI,
+  'member_002': GRP_KOSAN_ARAI,
+  'member_016': GRP_KOSAN_ARAI,
+  'member_017': GRP_KOSAN_ARAI,
+  'member_018': GRP_KOSAN_ARAI,
+  'member_019': GRP_KOSAN_ARAI,
+  'member_020': GRP_KOSAN_ARAI,
+  'member_021': GRP_KOSAN_ARAI,
+  // 1000円講座 (old: グループりん)
+  'member_003': GRP_1000EN,
+  'member_004': GRP_1000EN,
+  'member_005': GRP_1000EN,
+  'member_006': GRP_1000EN,
+  'member_007': GRP_1000EN,
+  'member_008': GRP_1000EN,
+  'member_009': GRP_1000EN,
+  'member_010': GRP_1000EN,
+  'member_011': GRP_1000EN,
+  'member_012': GRP_1000EN,
+  'member_013': GRP_1000EN,
+  'member_014': GRP_1000EN,
+  'member_015': GRP_1000EN,
+  // 新規+竹内 (old: グループ新規 + グループ竹内)
+  'member_022': GRP_SHINKI_TAKEUCHI,
+  'member_023': GRP_SHINKI_TAKEUCHI,
+  'member_024': GRP_SHINKI_TAKEUCHI,
+  'member_025': GRP_SHINKI_TAKEUCHI,
+  'member_026': GRP_SHINKI_TAKEUCHI,
+  'member_027': GRP_SHINKI_TAKEUCHI,
+  'member_028': GRP_SHINKI_TAKEUCHI,
+  'member_029': GRP_SHINKI_TAKEUCHI,
+  'member_031': GRP_SHINKI_TAKEUCHI,
+  'member_032': GRP_SHINKI_TAKEUCHI,
 };
 
 const MEMBER_SLACK_MAP: Record<string, string> = {

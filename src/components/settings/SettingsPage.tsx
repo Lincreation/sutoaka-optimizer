@@ -2,11 +2,24 @@ import { useState, useRef, useCallback } from 'react';
 import { useAppState } from '../../hooks/useAppState';
 import { generateId } from '../../utils/dateUtils';
 import type { Course, Group, Member } from '../../types';
+import {
+  exportMembersCsv,
+  exportCoursesCsv,
+  exportGroupsCsv,
+  detectCsvType,
+  importMembersCsv,
+  importCoursesCsv,
+  importGroupsCsv,
+} from '../../utils/settingsCsvUtils';
 
 type SettingsTab = 'period' | 'courses' | 'groups' | 'members' | 'rules' | 'template';
 
 export function SettingsPage() {
   const [tab, setTab] = useState<SettingsTab>('period');
+  const [toast, setToast] = useState('');
+  const state = useAppState();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: 'period', label: '期間' },
     { id: 'courses', label: '講座' },
@@ -16,12 +29,99 @@ export function SettingsPage() {
     { id: 'template', label: 'テンプレート' },
   ];
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const handleExportAll = () => {
+    exportCoursesCsv(state.courses, state.courseTargets);
+    setTimeout(() => exportGroupsCsv(state.groups, state.courses), 200);
+    setTimeout(() => exportMembersCsv(state.members, state.groups), 400);
+    showToast('3つのCSVファイルをダウンロードしました');
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const csvType = detectCsvType(text);
+      switch (csvType) {
+        case 'members': {
+          const result = importMembersCsv(text, state.groups);
+          if (result.members.length === 0) {
+            showToast('インポートできる担当者データがありません');
+            break;
+          }
+          state.setMembers(result.members);
+          showToast(`担当者 ${result.members.length}件をインポートしました` +
+            (result.warnings.length ? `（警告: ${result.warnings.length}件）` : ''));
+          break;
+        }
+        case 'courses': {
+          const result = importCoursesCsv(text);
+          if (result.courses.length === 0) {
+            showToast('インポートできる講座データがありません');
+            break;
+          }
+          state.setCourses(result.courses);
+          state.setCourseTargets(result.courseTargets);
+          showToast(`講座 ${result.courses.length}件をインポートしました`);
+          break;
+        }
+        case 'groups': {
+          const result = importGroupsCsv(text, state.courses);
+          if (result.groups.length === 0) {
+            showToast('インポートできるグループデータがありません');
+            break;
+          }
+          state.setGroups(result.groups);
+          showToast(`グループ ${result.groups.length}件をインポートしました` +
+            (result.warnings.length ? `（警告: ${result.warnings.length}件）` : ''));
+          break;
+        }
+        default:
+          showToast('CSVの種類を判別できません。ヘッダー行を確認してください');
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+    // Reset so same file can be imported again
+    e.target.value = '';
+  };
+
   return (
     <div>
       <div className="page-header">
         <h1>設定</h1>
         <p>講座・グループ・担当者などのマスタデータを管理します</p>
       </div>
+
+      {/* CSV Import/Export bar */}
+      <div className="action-bar" style={{ marginBottom: 16 }}>
+        <button className="btn btn-primary btn-sm" onClick={handleExportAll}>
+          📤 CSVエクスポート（全設定）
+        </button>
+        <button className="btn btn-sm" onClick={handleImportClick}>
+          📥 CSVインポート
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+          ※ インポートは担当者・講座・グループのCSVを自動判別します
+        </span>
+      </div>
+
       <div className="tabs">
         {tabs.map((t) => (
           <button
@@ -39,6 +139,8 @@ export function SettingsPage() {
       {tab === 'members' && <MemberEditor />}
       {tab === 'rules' && <RulesEditor />}
       {tab === 'template' && <TemplateEditor />}
+
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

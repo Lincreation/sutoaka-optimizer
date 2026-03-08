@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useAppState } from '../../hooks/useAppState';
 import { generateAllNotifications } from '../../utils/notificationGenerator';
-import { copyTableToClipboard, tsvForDownload, downloadTsv, copyToClipboard } from '../../utils/exportUtils';
+import { copyTableToClipboard, tsvForDownload, downloadTsv, csvForDownload, downloadCsv, copyToClipboard } from '../../utils/exportUtils';
 import { formatJapaneseDate } from '../../utils/dateUtils';
 
 export function NotificationsPage() {
@@ -73,6 +73,13 @@ export function NotificationsPage() {
     showToast('TSVファイルをダウンロードしました');
   };
 
+  /** CSV: download as file for Google Sheets import */
+  const handleDownloadCsv = () => {
+    const csv = csvForDownload(filtered);
+    downloadCsv(csv, `notifications_${Date.now()}.csv`);
+    showToast('CSVファイルをダウンロードしました');
+  };
+
   if (!currentPlan) {
     return (
       <div>
@@ -122,6 +129,9 @@ export function NotificationsPage() {
       <div className="action-bar" style={{ flexWrap: 'wrap' }}>
         <button className="btn btn-primary btn-sm" onClick={handleCopyTsv}>
           📋 スプシ用コピー（TSV）
+        </button>
+        <button className="btn btn-sm" onClick={handleDownloadCsv}>
+          📥 CSVダウンロード
         </button>
         <button className="btn btn-sm" onClick={handleDownloadTsv}>
           💾 TSVダウンロード

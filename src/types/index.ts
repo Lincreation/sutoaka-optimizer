@@ -126,6 +126,7 @@ export interface AppState {
   config: AllocationConfig;
   template: NotificationTemplate;
   currentPlan: MonthlyPlan | null;
+  planHistory: MonthlyPlan[];
 }
 
 export type PageId =
