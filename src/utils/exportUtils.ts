@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import type { SlackNotificationData } from '../types';
 
 export function exportNotificationsAsJson(
@@ -146,6 +147,52 @@ export function downloadGroupCsvs(
   for (const { groupName, csv } of groups) {
     downloadCsv(csv, `notifications_${groupName}_${ts}.csv`);
   }
+}
+
+/**
+ * Build notification rows as 2D array for xlsx sheet (header + data rows).
+ */
+function notificationsToAoa(notifications: SlackNotificationData[]): string[][] {
+  const rows: string[][] = [COLUMNS];
+  for (const n of notifications) {
+    rows.push(rowValues(n));
+  }
+  return rows;
+}
+
+/**
+ * Download notifications as a single .xlsx file with multiple sheets:
+ *  - 「全体」 sheet: all data sorted by date
+ *  - One sheet per group: group data sorted by date
+ */
+export function downloadXlsx(notifications: SlackNotificationData[]): void {
+  const wb = XLSX.utils.book_new();
+
+  // 1. 全体 sheet
+  const allSorted = [...notifications].sort((a, b) => a.date.localeCompare(b.date));
+  const allSheet = XLSX.utils.aoa_to_sheet(notificationsToAoa(allSorted));
+  XLSX.utils.book_append_sheet(wb, allSheet, '全体');
+
+  // 2. Per-group sheets
+  const groupMap = new Map<string, SlackNotificationData[]>();
+  for (const n of notifications) {
+    if (!groupMap.has(n.groupName)) groupMap.set(n.groupName, []);
+    groupMap.get(n.groupName)!.push(n);
+  }
+  const sortedGroupNames = [...groupMap.keys()].sort();
+  for (const groupName of sortedGroupNames) {
+    const items = groupMap.get(groupName)!;
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    const sheet = XLSX.utils.aoa_to_sheet(notificationsToAoa(items));
+    // Excel sheet name max 31 chars, no special chars
+    const safeName = groupName.slice(0, 31).replace(/[\\/*?[\]:]/g, '_');
+    XLSX.utils.book_append_sheet(wb, sheet, safeName);
+  }
+
+  // 3. Write and download
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  downloadBlob(blob, `notifications_${Date.now()}.xlsx`);
 }
 
 /** Copy text to clipboard. Uses textarea fallback first for max compatibility. */
