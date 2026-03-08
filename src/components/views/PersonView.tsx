@@ -10,6 +10,7 @@ const DAY_HEADERS = ['日', '月', '火', '水', '木', '金', '土'];
 export function PersonView() {
   const { currentPlan, members, groups, courses, config } = useAppState();
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
 
   const personData = useMemo(() => {
     if (!currentPlan) return [];
@@ -46,10 +47,14 @@ export function PersonView() {
   }, [currentPlan, members, groups, courses]);
 
   const calendarData = useMemo(() => {
-    // Build calendar grid for the period month
+    // Build calendar grid for the period month + offset
     const startDate = new Date(config.periodStart + 'T00:00:00');
-    const year = startDate.getFullYear();
-    const month = startDate.getMonth();
+    const baseYear = startDate.getFullYear();
+    const baseMonth = startDate.getMonth();
+
+    const displayDate = new Date(baseYear, baseMonth + calendarMonthOffset, 1);
+    const year = displayDate.getFullYear();
+    const month = displayDate.getMonth();
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -62,7 +67,7 @@ export function PersonView() {
     while (cells.length % 7 !== 0) cells.push(null);
 
     return { year, month, cells };
-  }, [config.periodStart]);
+  }, [config.periodStart, calendarMonthOffset]);
 
   if (!currentPlan) {
     return (
@@ -156,6 +161,26 @@ export function PersonView() {
               </tbody>
             </table>
           ) : (
+            <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 12 }}>
+              <button
+                className="btn btn-sm"
+                onClick={() => setCalendarMonthOffset((o) => o - 1)}
+                style={{ padding: '2px 10px', fontSize: 16 }}
+              >
+                ◀
+              </button>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>
+                {calendarData.year}年{calendarData.month + 1}月
+              </span>
+              <button
+                className="btn btn-sm"
+                onClick={() => setCalendarMonthOffset((o) => o + 1)}
+                style={{ padding: '2px 10px', fontSize: 16 }}
+              >
+                ▶
+              </button>
+            </div>
             <div className="calendar-grid">
               {DAY_HEADERS.map((h) => (
                 <div key={h} className="calendar-header-cell">{h}</div>
@@ -184,6 +209,7 @@ export function PersonView() {
                 );
               })}
             </div>
+            </>
           )}
         </div>
       ))}

@@ -103,6 +103,51 @@ export function downloadCsv(csv: string, filename: string): void {
   downloadBlob(blob, filename);
 }
 
+/**
+ * Group notifications by groupName and produce per-group CSVs + a combined CSV.
+ * Returns an array of { groupName, csv } objects.
+ */
+export function csvsByGroup(
+  notifications: SlackNotificationData[]
+): { groupName: string; csv: string }[] {
+  const groupMap = new Map<string, SlackNotificationData[]>();
+  for (const n of notifications) {
+    if (!groupMap.has(n.groupName)) groupMap.set(n.groupName, []);
+    groupMap.get(n.groupName)!.push(n);
+  }
+
+  // Sort each group's notifications by date
+  const results: { groupName: string; csv: string }[] = [];
+  const sortedGroupNames = [...groupMap.keys()].sort();
+  for (const groupName of sortedGroupNames) {
+    const items = groupMap.get(groupName)!;
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    results.push({ groupName, csv: csvForDownload(items) });
+  }
+  return results;
+}
+
+/**
+ * Download all group CSVs + a combined all-data CSV as individual files.
+ * Each file is timestamped and named by group.
+ */
+export function downloadGroupCsvs(
+  notifications: SlackNotificationData[]
+): void {
+  const ts = Date.now();
+
+  // 1. Combined all-data CSV (sorted by date)
+  const sorted = [...notifications].sort((a, b) => a.date.localeCompare(b.date));
+  const allCsv = csvForDownload(sorted);
+  downloadCsv(allCsv, `notifications_全体_${ts}.csv`);
+
+  // 2. Per-group CSVs
+  const groups = csvsByGroup(notifications);
+  for (const { groupName, csv } of groups) {
+    downloadCsv(csv, `notifications_${groupName}_${ts}.csv`);
+  }
+}
+
 /** Copy text to clipboard. Uses textarea fallback first for max compatibility. */
 export function copyToClipboard(text: string): Promise<void> {
   return new Promise((resolve, reject) => {

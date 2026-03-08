@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useAppState } from '../../hooks/useAppState';
 import { generateAllNotifications } from '../../utils/notificationGenerator';
-import { copyTableToClipboard, tsvForDownload, downloadTsv, csvForDownload, downloadCsv, copyToClipboard } from '../../utils/exportUtils';
+import { copyTableToClipboard, tsvForDownload, downloadTsv, csvForDownload, downloadCsv, downloadGroupCsvs, copyToClipboard } from '../../utils/exportUtils';
 import { formatJapaneseDate } from '../../utils/dateUtils';
 
 export function NotificationsPage() {
@@ -80,6 +80,13 @@ export function NotificationsPage() {
     showToast('CSVファイルをダウンロードしました');
   };
 
+  /** CSV: download per-group CSVs + combined CSV */
+  const handleDownloadGroupCsvs = () => {
+    downloadGroupCsvs(notifications);
+    const groupCount = new Set(notifications.map((n) => n.groupName)).size;
+    showToast(`全体＋${groupCount}グループのCSVをダウンロードしました`);
+  };
+
   if (!currentPlan) {
     return (
       <div>
@@ -132,6 +139,9 @@ export function NotificationsPage() {
         </button>
         <button className="btn btn-sm" onClick={handleDownloadCsv}>
           📥 CSVダウンロード
+        </button>
+        <button className="btn btn-primary btn-sm" onClick={handleDownloadGroupCsvs}>
+          📦 グループ別CSV一括DL
         </button>
         <button className="btn btn-sm" onClick={handleDownloadTsv}>
           💾 TSVダウンロード

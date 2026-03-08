@@ -264,7 +264,7 @@ function packIntoWorkingDays(
   const selectedDays = selectWorkingDays(mergedBuckets, weekSizes, targetDays, memberIndex);
 
   // Pack courses into selected days (with expansion from full pool if needed)
-  return packCourses(selectedDays, quotas, perDayMap, maxPerDay, workingDays);
+  return packCourses(selectedDays, quotas, perDayMap, maxPerDay, workingDays, memberIndex);
 }
 
 /**
@@ -379,7 +379,8 @@ function packCourses(
   quotas: Map<string, number>,
   perDayMap: Map<string, number>,
   maxPerDay: number,
-  allWorkingDays: string[]
+  allWorkingDays: string[],
+  memberIndex: number
 ): Map<string, Map<string, number>> {
   const result = new Map<string, Map<string, number>>();
   for (const day of selectedDays) {
@@ -435,8 +436,10 @@ function packCourses(
       // This naturally spreads assignments across the entire month.
       let bestDay: string;
       if (assigned.length === 0) {
-        // First pick: stagger starting position by course index
-        const offset = Math.floor((ci * available.length) / courseList.length);
+        // First pick: stagger starting position by both course index AND member index.
+        // Using memberIndex * a prime multiplier ensures different members start the
+        // same course at different positions in the month, preventing clustering.
+        const offset = Math.floor(((ci + memberIndex * 3) * available.length) / courseList.length) % available.length;
         bestDay = available[offset];
       } else {
         bestDay = available[0];
