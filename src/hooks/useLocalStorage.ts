@@ -3,9 +3,20 @@ import { loadFromStorage, saveToStorage } from '../utils/storage';
 
 export function useLocalStorage<T>(
   key: string,
-  defaultValue: T
+  defaultValue: T,
+  migrate?: (loaded: T) => T
 ): [T, (value: T | ((prev: T) => T)) => void] {
-  const [state, setState] = useState<T>(() => loadFromStorage(key, defaultValue));
+  const [state, setState] = useState<T>(() => {
+    const loaded = loadFromStorage(key, defaultValue);
+    if (migrate) {
+      const migrated = migrate(loaded);
+      if (migrated !== loaded) {
+        saveToStorage(key, migrated);
+        return migrated;
+      }
+    }
+    return loaded;
+  });
 
   const setValue = useCallback(
     (value: T | ((prev: T) => T)) => {

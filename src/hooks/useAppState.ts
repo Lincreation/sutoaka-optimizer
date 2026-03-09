@@ -36,11 +36,25 @@ const AppStateContext = createContext<AppActions | null>(null);
 
 export const AppStateProvider = AppStateContext.Provider;
 
+/** Migrate members loaded from localStorage: fill missing slackName from defaults */
+function migrateMembersSlackName(members: Member[]): Member[] {
+  let changed = false;
+  const migrated = members.map((m) => {
+    if (m.slackName === undefined || m.slackName === null) {
+      const def = DEFAULT_MEMBERS.find((d) => d.id === m.id);
+      changed = true;
+      return { ...m, slackName: def?.slackName ?? '' };
+    }
+    return m;
+  });
+  return changed ? migrated : members;
+}
+
 export function useAppStateValue(): AppActions {
   const [courses, setCourses] = useLocalStorage<Course[]>('courses', DEFAULT_COURSES);
   const [courseTargets, setCourseTargets] = useLocalStorage<CourseTarget[]>('courseTargets', DEFAULT_COURSE_TARGETS);
   const [groups, setGroups] = useLocalStorage<Group[]>('groups', DEFAULT_GROUPS);
-  const [members, setMembers] = useLocalStorage<Member[]>('members', DEFAULT_MEMBERS);
+  const [members, setMembers] = useLocalStorage<Member[]>('members', DEFAULT_MEMBERS, migrateMembersSlackName);
   const [config, setConfig] = useLocalStorage<AllocationConfig>('config', DEFAULT_CONFIG);
   const [template, setTemplate] = useLocalStorage<NotificationTemplate>('template', DEFAULT_TEMPLATE);
   const [currentPlan, setCurrentPlan] = useLocalStorage<MonthlyPlan | null>('currentPlan', null);
