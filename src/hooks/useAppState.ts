@@ -40,10 +40,15 @@ export const AppStateProvider = AppStateContext.Provider;
 function migrateMembersSlackName(members: Member[]): Member[] {
   let changed = false;
   const migrated = members.map((m) => {
-    if (m.slackName === undefined || m.slackName === null) {
-      const def = DEFAULT_MEMBERS.find((d) => d.id === m.id);
-      changed = true;
-      return { ...m, slackName: def?.slackName ?? '' };
+    if (!m.slackName) {
+      // Match by id, then by name, then by slackUserId
+      const def = DEFAULT_MEMBERS.find((d) => d.id === m.id)
+        ?? DEFAULT_MEMBERS.find((d) => d.name === m.name)
+        ?? DEFAULT_MEMBERS.find((d) => d.slackUserId && d.slackUserId === m.slackUserId);
+      if (def?.slackName) {
+        changed = true;
+        return { ...m, slackName: def.slackName };
+      }
     }
     return m;
   });
