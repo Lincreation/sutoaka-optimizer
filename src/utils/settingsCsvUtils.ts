@@ -84,7 +84,7 @@ function downloadCsvFile(csv: string, filename: string): void {
 
 // ─── EXPORT ───────────────────────────────────────────────────
 
-const MEMBER_HEADERS = ['名前', 'グループ名', 'SlackユーザーID', '月間上限', 'アクティブ'];
+const MEMBER_HEADERS = ['名前', 'グループ名', 'SlackユーザーID', 'Slack表示名', '月間上限', 'アクティブ'];
 const COURSE_HEADERS = ['講座名', 'URL', '外部ID', '目標回数', '1日回数'];
 const GROUP_HEADERS = ['グループ名', 'SlackチャンネルID', '担当可能講座'];
 
@@ -95,6 +95,7 @@ export function exportMembersCsv(members: Member[], groups: Group[]): void {
       m.name,
       group?.name ?? '',
       m.slackUserId,
+      m.slackName ?? '',
       m.monthlyLimit != null ? String(m.monthlyLimit) : '',
       m.isActive ? 'TRUE' : 'FALSE',
     ];
@@ -174,8 +175,9 @@ export function importMembersCsv(
       name,
       groupId: group?.id ?? '',
       slackUserId: row[2]?.trim() ?? '',
-      monthlyLimit: row[3]?.trim() ? parseInt(row[3].trim()) || undefined : undefined,
-      isActive: row[4]?.trim().toUpperCase() !== 'FALSE',
+      slackName: row[3]?.trim() ?? '',
+      monthlyLimit: row[4]?.trim() ? parseInt(row[4].trim()) || undefined : undefined,
+      isActive: row[5]?.trim().toUpperCase() !== 'FALSE',
     });
   }
 

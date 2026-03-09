@@ -23,6 +23,7 @@ export interface Member {
   name: string;
   groupId: string;
   slackUserId: string;
+  slackName: string;
   monthlyLimit?: number;
   isActive: boolean;
 }

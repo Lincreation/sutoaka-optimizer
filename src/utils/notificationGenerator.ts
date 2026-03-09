@@ -48,7 +48,7 @@ export function generateAllNotifications(
       })
       .join('\n');
 
-    const mention = member.slackUserId ? `<@${member.slackUserId}>\n` : '';
+    const mention = member.slackName ? `@${member.slackName}\n` : '';
     const messageText = [mention + template.header, courseLines, template.footer].join(
       '\n'
     );

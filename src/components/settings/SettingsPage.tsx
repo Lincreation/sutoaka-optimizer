@@ -470,6 +470,7 @@ function MemberEditor() {
         name: '',
         groupId: groups[0]?.id ?? '',
         slackUserId: '',
+        slackName: '',
         isActive: true,
       },
     ]);
@@ -494,6 +495,7 @@ function MemberEditor() {
             <th>名前</th>
             <th>グループ</th>
             <th>SlackユーザーID</th>
+            <th>Slack表示名</th>
             <th>月上限</th>
             <th>有効</th>
             <th></th>
@@ -535,6 +537,16 @@ function MemberEditor() {
                   placeholder="U0123456789"
                   onChange={(e) =>
                     updateMember(m.id, { slackUserId: e.target.value })
+                  }
+                />
+              </td>
+              <td>
+                <input
+                  className="inline-input"
+                  value={m.slackName ?? ''}
+                  placeholder="表示名"
+                  onChange={(e) =>
+                    updateMember(m.id, { slackName: e.target.value })
                   }
                 />
               </td>
@@ -657,7 +669,7 @@ function TemplateEditor() {
       </div>
       <div className="card-title" style={{ marginTop: 16 }}>プレビュー</div>
       <div className="notification-text">
-        {'<@SlackユーザーID>\n'}
+        {'@Slack表示名\n'}
         {template.header}
         {'\n'}・講座サンプル（https://example.com）：2回{'\n'}
         {template.footer}
