@@ -671,7 +671,7 @@ function TemplateEditor() {
       <div className="notification-text">
         {'@Slack表示名\n'}
         {template.header}
-        {'\n'}・講座サンプル（https://example.com）：2回{'\n'}
+        {'\n'}・講座サンプル：2回{'\n'}https://www.street-academy.com/myclass/XXXXX{'\n'}
         {template.footer}
       </div>
     </div>
