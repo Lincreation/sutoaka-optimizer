@@ -43,8 +43,8 @@ export function generateAllNotifications(
 
     const courseLines = courseDetails
       .map((cd) => {
-        const urlPart = cd.courseUrl ? `（${cd.courseUrl}）` : '';
-        return `・${cd.courseName}${urlPart}：${cd.count}回`;
+        const line = `・${cd.courseName}：${cd.count}回`;
+        return cd.courseUrl ? `${line}\n${cd.courseUrl}` : line;
       })
       .join('\n');
 
